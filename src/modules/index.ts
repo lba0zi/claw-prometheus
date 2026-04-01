@@ -1,7 +1,7 @@
 /**
  * OpenClaw Agent Harness Modules
  * ==============================
- * 从 Claude Code 泄露源码中提炼的 AI Agent 核心基础设施。
+ * 从某 AI Coding 产品源码泄露中提炼的 AI Agent 核心基础设施。
  *
  * 模块列表:
  *   tool-permissions      - 工具权限拒绝追踪

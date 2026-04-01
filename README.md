@@ -1,10 +1,10 @@
 # claw-harness
 
-> Extracting production-grade AI Agent capabilities from the Claude Code source leak — now integrated into OpenClaw.
+> Production-grade AI Agent harness modules extracted from an AI coding product source leak — integrated into OpenClaw.
 
 ## What is this?
 
-On March 31, 2026, security researcher [@Fried_rice](https://github.com/fried-rice7) discovered that Anthropic's official Claude Code npm package contained full TypeScript source code in its `cli.js.map` file — ~512,000 lines of a production AI Coding Agent's internal harness system.
+In March 2026, a significant amount of internal source code from a leading AI coding assistant product was accidentally published via an npm package source map file. This revealed the complete internal harness architecture of a production AI coding agent — hundreds of thousands of lines of TypeScript.
 
 **claw-harness** extracts the most valuable engineering patterns from that leak and packages them as OpenClaw plugins and standalone Python modules.
 
@@ -22,8 +22,8 @@ Detects and blocks dangerous operations **before** execution:
 | `format` / `Format-Volume` | Critical | BLOCK |
 | `Invoke-Expression` / `IEX` | Critical | BLOCK |
 | `shutdown /s /f` / `stop-computer -Force` | Critical | BLOCK |
-| `sekurlsa::` / `mimikatz` | Critical | BLOCK |
-| `Invoke-WebRequest \| IEX` (download+exec) | Dangerous | WARN |
+| Credential theft patterns | Critical | BLOCK |
+| Download + execute pipelines | Dangerous | WARN |
 | `Set-ExecutionPolicy Bypass` | Dangerous | WARN |
 | Network UNC path access | Warning | WARN |
 
@@ -91,7 +91,6 @@ ln -s /path/to/openclaw/node_modules/@sinclair \
 # 3. Add to openclaw.json
 openclaw config set plugins.allow '["claw-harness"]'
 openclaw config set plugins.entries.claw-harness.enabled true
-openclaw config set plugins.entries.claw-harness.config '{}'
 
 # 4. Add tools to allowlist
 openclaw config set tools.allow '[
@@ -132,13 +131,13 @@ print(result.summary())  # 🚫 BLOCKED: recursive_delete
       "claw-harness": {
         "enabled": true,
         "config": {
-          "compactAfterTurns": 12,       // Auto-compact after N turns
-          "maxBudgetTokens": 2000,       // Budget per turn
-          "denyTools": ["Bash_rm", "FormatTool"],  // Explicit denies
-          "denyToolPrefixes": ["Network*"],         // Prefix denies
-          "bashSecurityEnabled": true,     // Enable security checks
-          "autoCompact": true,             // Heartbeat auto-compact
-          "logDenials": true              // Log rejections to JSONL
+          "compactAfterTurns": 12,
+          "maxBudgetTokens": 2000,
+          "denyTools": ["Bash_rm", "FormatTool"],
+          "denyToolPrefixes": ["Network*"],
+          "bashSecurityEnabled": true,
+          "autoCompact": true,
+          "logDenials": true
         }
       }
     }
@@ -153,11 +152,11 @@ print(result.summary())  # 🚫 BLOCKED: recursive_delete
 ```
 src/
 ├── modules/                    # Standalone TypeScript modules
-│   ├── tool-permissions.ts    # Permission denial tracking
+│   ├── tool-permissions.ts     # Permission denial tracking
 │   ├── session-compactor.ts   # Conversation compaction
-│   ├── turn-result.ts        # Structured execution results
-│   ├── prompt-router.ts      # Command + tool routing
-│   ├── bash-security.ts       # PowerShell security analysis
+│   ├── turn-result.ts         # Structured execution results
+│   ├── prompt-router.ts       # Command + tool routing
+│   ├── bash-security.ts        # PowerShell security analysis
 │   ├── session-branching.ts   # Parallel session branches
 │   └── permission-denial-log.ts # Security audit log
 │
@@ -198,21 +197,12 @@ When session exceeds ~10 turns, call SessionCompact automatically.
 
 - [OpenClaw Plugin Guide](./claw-harness/README.md)
 - [Python Module API](./src/python/)
-- [Claude Code Leak Analysis](https://zhuanlan.zhihu.com/p/2022378958767887638) (Zhihu, Chinese)
 
 ---
 
 ## Disclaimers
 
-- This project is an **independent engineering analysis** of publicly available source code.
-- It is **not affiliated with**, **not supported by**, and **not endorsed by** Anthropic PBC.
-- Source code from this project must not be used to create a competing product to Claude Code.
+- This project is an **independent engineering analysis** of publicly disclosed source code.
+- It is **not affiliated with** any company mentioned or referenced.
+- Source code analysis results must not be used to create competing products.
 - See [LICENSE](./LICENSE) for full terms.
-
----
-
-## Credits
-
-- Original leak discovery: [@Fried_rice](https://github.com/fried-rice7) (Chaofan Shou)
-- Inspired by: [instructkr/claude-code](https://github.com/instructkr/claude-code) — clean-room Python reimplementation
-- This project: clean-room engineering analysis and OpenClaw integration

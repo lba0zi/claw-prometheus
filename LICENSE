@@ -22,9 +22,8 @@ SOFTWARE.
 
 ---
 
-IMPORTANT: This project is an independent engineering study of publicly
-available source code first released on March 31, 2026.
-
-Claude Code is a trademark of Anthropic PBC. This project is not affiliated
-with, endorsed by, or sponsored by Anthropic PBC. Source code derived from
-the Claude Code leak may not be used to create a competing product or service.
+IMPORTANT: This project is an independent engineering study based on publicly
+disclosed source code. This project is not affiliated with, endorsed by, or
+sponsored by any company whose code is referenced herein. Engineering insights
+derived from this analysis may not be used to create competing products or
+services.

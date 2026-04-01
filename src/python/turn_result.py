@@ -1,7 +1,7 @@
 """
 turn_result.py — 结构化执行结果 + stop_reason
 ==============================================
-来自 Claude Code harness 的 TurnResult 设计。
+来自某 AI Coding 产品源码泄露的 TurnResult 设计。
 
 StopReason:
     completed          — 正常完成
@@ -163,7 +163,7 @@ class QueryEnginePort:
     """
     多轮 Agent 循环执行器。
     
-    来自 Claude Code 的 `PortRuntime.run_turn_loop` 设计。
+    来自某 AI Coding 产品源码泄露的 `PortRuntime.run_turn_loop` 设计。
     支持: 多轮执行、自动压缩、预算控制、结构化输出。
     """
     def __init__(

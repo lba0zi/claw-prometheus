@@ -1,7 +1,7 @@
 {
   "id": "claw-harness",
   "name": "Claw Harness",
-  "description": "Claude Code harness modules integrated into OpenClaw: tool permissions, session compaction, smart routing, bash security, session branching, and structured turn results.",
+  "description": "AI Agent harness modules from public source leak: tool permissions, session compaction, smart routing, bash security, session branching, and structured turn results.",
   "version": "1.0.0",
   "configSchema": {
     "type": "object",

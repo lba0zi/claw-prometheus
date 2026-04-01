@@ -1,7 +1,7 @@
 """
 prompt_router.py — 智能路由 (command + tool 双重匹配)
 =======================================================
-来自某 AI Coding 产品源码泄露的 `route_prompt` 设计。
+来自 Prometheus（普罗米修斯）的 `route_prompt` 设计。
 
 目标: 用户输入同时匹配 Command（斜杠命令）和 Tool，选择最优执行路径。
 
@@ -245,7 +245,7 @@ class PromptRouter:
 # ─────────────────────────────────────────────────────────────────
 
 def register_builtin_commands(router: PromptRouter) -> None:
-    """注册内置命令（参考某产品源码）。"""
+    """注册内置命令（参考 Prometheus）。"""
     commands = [
         ("git-commit", ["git", "commit", "提交"]),
         ("git-branch", ["git", "branch", "分支"]),
@@ -273,7 +273,7 @@ def register_builtin_commands(router: PromptRouter) -> None:
 
 
 def register_builtin_tools(router: PromptRouter) -> None:
-    """注册内置工具（参考某产品源码）。"""
+    """注册内置工具（参考 Prometheus）。"""
     tools = [
         ("BashTool", ["bash", "terminal", "终端", "命令", "shell", "sh"]),
         ("PowerShellTool", ["powershell", "ps", "pwsh", "powershell"]),

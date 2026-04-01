@@ -1,7 +1,7 @@
 {
-  "id": "claw-harness",
-  "name": "Claw Harness",
-  "description": "AI Agent harness modules from public source leak: tool permissions, session compaction, smart routing, bash security, session branching, and structured turn results.",
+  "id": "claw-prometheus",
+  "name": "Claw Prometheus",
+  "description": "AI Agent harness modules from the Prometheus source leak — fire for OpenClaw. Tool permissions, session compaction, smart routing, bash security, branching, and structured turn results.",
   "version": "1.0.0",
   "configSchema": {
     "type": "object",

@@ -1,7 +1,7 @@
 """
 tool_permissions.py — 工具权限拒绝追踪
 =======================================
-来自某 AI Coding 产品源码泄露的 ToolPermissionContext 设计。
+来自 Prometheus（普罗米修斯）的 ToolPermissionContext 设计。
 
 风险等级:
     safe       — 安全操作，如读文件、搜索

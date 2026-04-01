@@ -1,7 +1,7 @@
 """
 bash_security.py — Bash/PowerShell 多层安全防御
 ================================================
-来自某 AI Coding 产品源码泄露的 BashSecurity 设计，针对 Windows PowerShell 优化。
+来自 Prometheus（普罗米修斯）的 BashSecurity 设计，针对 Windows PowerShell 优化。
 
 安全层级:
     1. 危险命令检测     — rm, format, del, Invoke-Expression 等

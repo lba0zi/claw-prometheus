@@ -1,208 +1,149 @@
-# claw-harness
+# claw-prometheus
 
-> Production-grade AI Agent harness modules extracted from an AI coding product source leak — integrated into OpenClaw.
+> 盗取神火，照亮人间。
 
-## What is this?
+## 缘起
 
-In March 2026, a significant amount of internal source code from a leading AI coding assistant product was accidentally published via an npm package source map file. This revealed the complete internal harness architecture of a production AI coding agent — hundreds of thousands of lines of TypeScript.
+普罗米修斯用泥土造人，盗取奥林匹斯之火，将文明与技艺带给人类。
 
-**claw-harness** extracts the most valuable engineering patterns from that leak and packages them as OpenClaw plugins and standalone Python modules.
+2026年3月，某 AI  Coding 产品的源码意外泄露——完整的产品级 Agent Harness 系统，数万行 TypeScript 代码，如神界火种散落人间。
+
+**claw-prometheus** 将这些工程实践提取、重构、装入 OpenClaw，让这火种继续燃烧。
 
 ---
 
-## Features
+## 火种包含的能力
 
-### 🛡️ Security — Bash/PowerShell Multi-Layer Defense
+### 🛡️ BashSecurity — 多层安全防御
 
-Detects and blocks dangerous operations **before** execution:
+在命令执行前识别危险操作，如同预警系统守护火种：
 
-| Pattern | Risk | Action |
-|---------|------|--------|
-| `rm -rf /` / `Remove-Item -Recurse -Force` | Critical | BLOCK |
-| `format` / `Format-Volume` | Critical | BLOCK |
-| `Invoke-Expression` / `IEX` | Critical | BLOCK |
-| `shutdown /s /f` / `stop-computer -Force` | Critical | BLOCK |
-| Credential theft patterns | Critical | BLOCK |
-| Download + execute pipelines | Dangerous | WARN |
-| `Set-ExecutionPolicy Bypass` | Dangerous | WARN |
-| Network UNC path access | Warning | WARN |
+| 危险模式 | 等级 | 处理 |
+|---------|------|------|
+| `rm -rf /` / `Remove-Item -Recurse` | 极危 | 拦截 |
+| `format` / `Format-Volume` | 极危 | 拦截 |
+| `Invoke-Expression` / `IEX` | 极危 | 拦截 |
+| `shutdown /s /f` | 极危 | 拦截 |
+| 凭据窃取模式 | 极危 | 拦截 |
+| 下载+执行管道 | 危险 | 警告 |
+| `Set-ExecutionPolicy Bypass` | 危险 | 警告 |
 
-### 🧠 Memory — Session Compaction
+### 🧠 SessionCompactor — 记忆之火
 
-LLM context has limits. Session compaction solves this proactively:
+LLM 的上下文长度有尽，火种不灭——压缩旧记忆，保留精华：
 
 ```
-对话历史 14 轮 → 压缩为摘要 + 最近 6 轮
+对话历史 14 轮 → 摘要 + 最近 6 轮
 上下文长度: ~14,000 tokens → ~3,000 tokens
 节省: ~11,000 tokens
 ```
 
-Compressed history is saved to `memory/YYYY-MM-DD-compact.md`.
+### 🧭 PromptRouter — 双重路由
 
-### 🧭 Routing — Command + Tool Dual Matching
-
-User input simultaneously matches against Commands (`/git-commit`) and Tools (`BashTool`):
+同时匹配命令与工具，智能选择最优路径：
 
 ```
 "帮我 git commit"
-→ [command] git-commit   score=8  (git + commit keywords)
-→ [tool]    BashTool     score=2  (bash keyword)
+→ [命令] git-commit   得分=8
+→ [工具] BashTool     得分=2
 ```
 
-Commands are preferred at equal scores.
+### 🌿 SessionBranch — 分支探索
 
-### 🌿 Branching — Parallel Exploration
-
-Try two approaches simultaneously without disrupting the main session:
+同时探索多条路径，如银色马车并行：
 
 ```
-SessionBranch("方案A: Rust重写")  → branch_id=abc123
-[在分支中执行方案A]
-
-SessionBranch("方案B: Python优化") → branch_id=def456
-[在分支中执行方案B]
-
-SessionMerge("def456", strategy="newest_wins")  → 合并回主分支
+SessionBranch("方案A") → branch_id
+SessionBranch("方案B") → branch_id
+SessionMerge(branch_id) → 合并回主路
 ```
 
-### 📋 Permission Denial Log
+### 📋 PermissionDenialLog — 盗火日志
 
-Every tool rejection is logged to JSONL for security auditing:
+每一次拦截都被记录，供安全审计：
 
 ```json
-{"tool_name":"Bash_rm","reason":"explicit deny","timestamp":"2026-04-01T12:00:00Z","session_id":"abc123"}
+{"tool_name":"Bash_rm","reason":"极危操作","timestamp":"2026-04-01T12:00:00Z"}
 ```
 
 ---
 
-## Installation
-
-### Option 1: OpenClaw Plugin (Recommended)
+## 安装
 
 ```bash
-# 1. Copy plugin to OpenClaw extensions
-cp -r claw-harness ~/.openclaw/extensions/
+# 克隆
+git clone https://github.com/lba0zi/claw-prometheus.git
+cd claw-prometheus
 
-# 2. Create symlink for dependencies
-mkdir -p ~/.openclaw/extensions/claw-harness/node_modules
+# 安装插件
+cp -r claw-prometheus ~/.openclaw/extensions/
+# 创建依赖链接
+mkdir -p ~/.openclaw/extensions/claw-prometheus/node_modules
 ln -s /path/to/openclaw/node_modules/@sinclair \
-  ~/.openclaw/extensions/claw-harness/node_modules/@sinclair
+  ~/.openclaw/extensions/claw-prometheus/node_modules/@sinclair
 
-# 3. Add to openclaw.json
-openclaw config set plugins.allow '["claw-harness"]'
-openclaw config set plugins.entries.claw-harness.enabled true
+# 配置 OpenClaw
+openclaw config set plugins.allow '["claw-prometheus"]'
+openclaw config set plugins.entries.claw-prometheus.enabled true
 
-# 4. Add tools to allowlist
+# 添加工具到 allowlist
 openclaw config set tools.allow '[
-  "claw-harness/BashSecurityCheck",
-  "claw-harness/SessionCompact",
-  "claw-harness/PromptRoute",
-  "claw-harness/ToolPermissionCheck",
-  "claw-harness/SessionBranch",
-  "claw-harness/DenialLog"
+  "claw-prometheus/BashSecurityCheck",
+  "claw-prometheus/SessionCompact",
+  "claw-prometheus/PromptRoute",
+  "claw-prometheus/ToolPermissionCheck",
+  "claw-prometheus/SessionBranch",
+  "claw-prometheus/DenialLog"
 ]'
 
-# 5. Restart
+# 重启
 openclaw gateway restart
 ```
 
-### Option 2: Python Standalone
+## Python 独立使用
 
 ```bash
 pip install -e ./python
 ```
 
 ```python
-from claw_harness import bash_security, tool_permissions, session_compactor
+from claw_prometheus import bash_security, tool_permissions, session_compactor
 
 security = bash_security.BashSecurity()
 result = security.analyze("Remove-Item C:\\Temp -Recurse -Force")
-print(result.summary())  # 🚫 BLOCKED: recursive_delete
+print(result.summary())  # 极危 — 拦截
 ```
 
 ---
 
-## Configuration
-
-```jsonc
-{
-  "plugins": {
-    "entries": {
-      "claw-harness": {
-        "enabled": true,
-        "config": {
-          "compactAfterTurns": 12,
-          "maxBudgetTokens": 2000,
-          "denyTools": ["Bash_rm", "FormatTool"],
-          "denyToolPrefixes": ["Network*"],
-          "bashSecurityEnabled": true,
-          "autoCompact": true,
-          "logDenials": true
-        }
-      }
-    }
-  }
-}
-```
-
----
-
-## Architecture
+## 架构
 
 ```
 src/
-├── modules/                    # Standalone TypeScript modules
-│   ├── tool-permissions.ts     # Permission denial tracking
-│   ├── session-compactor.ts   # Conversation compaction
-│   ├── turn-result.ts         # Structured execution results
-│   ├── prompt-router.ts       # Command + tool routing
-│   ├── bash-security.ts        # PowerShell security analysis
-│   ├── session-branching.ts   # Parallel session branches
-│   └── permission-denial-log.ts # Security audit log
+├── modules/                    # TypeScript 模块（OpenClaw 直接引用）
+│   ├── bash-security.ts        # 安全防御
+│   ├── session-compactor.ts   # 记忆压缩
+│   ├── turn-result.ts         # 结构化结果
+│   ├── prompt-router.ts       # 双重路由
+│   ├── tool-permissions.ts    # 权限追踪
+│   ├── session-branching.ts   # 分支探索
+│   └── permission-denial-log.ts # 安全日志
 │
-├── python/                    # Standalone Python modules
-│   ├── tool_permissions.py
+├── python/                    # Python 模块（独立使用）
+│   ├── bash_security.py
 │   ├── session_compactor.py
 │   ├── turn_result.py
 │   ├── prompt_router.py
-│   └── bash_security.py
+│   └── tool_permissions.py
 │
-└── claw-harness/             # OpenClaw plugin
-    ├── index.ts               # Plugin entry point
-    ├── openclaw.plugin.json  # Plugin manifest + config schema
-    └── src/tools.ts          # OpenClaw agent tools implementation
+└── claw-prometheus/          # OpenClaw 插件
+    ├── index.ts
+    ├── openclaw.plugin.json
+    └── src/tools.ts          # 14 个 OpenClaw Agent Tools
 ```
 
 ---
 
-## For OpenClaw Agents
+## 免责声明
 
-Add to your `AGENTS.md` or `SOUL.md`:
-
-```markdown
-## Security
-
-Before executing ANY shell command, call BashSecurityCheck first:
-- BLOCK: tell user and do not execute
-- WARN: explain risk, proceed only after confirmation
-
-## Session Compaction
-
-When session exceeds ~10 turns, call SessionCompact automatically.
-```
-
----
-
-## Documentation
-
-- [OpenClaw Plugin Guide](./claw-harness/README.md)
-- [Python Module API](./src/python/)
-
----
-
-## Disclaimers
-
-- This project is an **independent engineering analysis** of publicly disclosed source code.
-- It is **not affiliated with** any company mentioned or referenced.
-- Source code analysis results must not be used to create competing products.
-- See [LICENSE](./LICENSE) for full terms.
+本项目是对公开源码的独立工程研究，不与任何公司关联。工程洞察不得用于创建竞争产品。

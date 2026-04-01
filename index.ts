@@ -1,7 +1,7 @@
 /**
  * claw-harness — OpenClaw Plugin
  * ================================
- * 将某 AI Coding 产品源码泄露中的核心 harness 模块集成到 OpenClaw。
+ * 将普罗米修斯之火——某 AI 产品源码泄露中的核心 harness 模块集成到 OpenClaw。
  *
  * 功能：
  *  1. ToolPermissionContext  — 工具权限拒绝追踪

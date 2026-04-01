@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+.eggs/
+
+# Node
+node_modules/
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# OpenClaw runtime
+.openclaw/
+memory/
+memory-*/
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Secrets (never commit these)
+*.pem
+*.key
+.env
+.env.*
+secrets.json
+credentials.json
+
+# Backup files
+*.bak
+*.backup

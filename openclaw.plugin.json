@@ -1,0 +1,54 @@
+{
+  "id": "claw-harness",
+  "name": "Claw Harness",
+  "description": "Claude Code harness modules integrated into OpenClaw: tool permissions, session compaction, smart routing, bash security, session branching, and structured turn results.",
+  "version": "1.0.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "compactAfterTurns": {
+        "type": "number",
+        "default": 12,
+        "description": "会话压缩触发轮次（默认 12）"
+      },
+      "maxBudgetTokens": {
+        "type": "number",
+        "default": 2000,
+        "description": "每次执行的最大 token 预算"
+      },
+      "denyTools": {
+        "type": "array",
+        "items": { "type": "string" },
+        "default": [],
+        "description": "默认拒绝的工具名称列表"
+      },
+      "denyToolPrefixes": {
+        "type": "array",
+        "items": { "type": "string" },
+        "default": [],
+        "description": "默认拒绝的工具前缀（如 Network*, Disk*）"
+      },
+      "bashSecurityEnabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "是否启用 Bash/PowerShell 安全检查"
+      },
+      "autoCompact": {
+        "type": "boolean",
+        "default": true,
+        "description": "是否在 heartbeat 时自动检查并压缩会话"
+      },
+      "logDenials": {
+        "type": "boolean",
+        "default": true,
+        "description": "是否记录权限拒绝到 denial-log.jsonl"
+      },
+      "branchStorageDir": {
+        "type": "string",
+        "default": ".openclaw/branches",
+        "description": "分支元数据存储目录"
+      }
+    }
+  }
+}

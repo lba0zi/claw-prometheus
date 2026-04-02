@@ -280,7 +280,8 @@ class SkillStore:
             m = re.match(r"(\s*)-\s+(.*)", stripped)
             if m:
                 indent, val = m.group(1), m.group(2).strip()
-                if result.get(current_key) is None:
+                # Initialize as list if current value is None or empty string
+                if result.get(current_key) is None or result.get(current_key) == "":
                     result[current_key] = []
                 if isinstance(result[current_key], list):
                     result[current_key].append(val)
@@ -405,16 +406,22 @@ class SkillStore:
         根据查询找最匹配的 skill，返回 (skill, match_score) 列表，按分数降序排列。
 
         匹配策略（纯规则，无 LLM）：
-        1. 查询词精确命中 trigger_keywords: +10 分/个
-        2. 查询词出现在 description 中: +5 分
-        3. 查询词出现在 name 中: +8 分
-        4. 查询词子串匹配 trigger: +3 分/个
-        5. 启用状态优先，禁用 skill 只在精确匹配时返回
+        1. query 完整词命中 trigger_keywords: +10 分/个
+        2. query 完整词出现在 name 中: +8 分
+        3. query 完整词出现在 description 中: +5 分
+        4. trigger_keyword 完整词出现在 query 中: +3 分/个
+        5. query 词出现在 trigger_keyword 中（子串）: +2 分/个
+        6. query 中词出现在 description 中（子串）: +1 分/个
         """
+        import re as _re
         q = query.lower()
+        q_words = set(q.split())
         results: list[tuple[Skill, float]] = []
 
-        # scan skills directory
+        def has_word(text: str, word: str) -> bool:
+            """检查 text 中是否包含完整词 word（中英文均适用）"""
+            return bool(_re.search(rf"\\b{_re.escape(word)}\\b", text))
+
         for category_dir in self.skills_dir.iterdir():
             if not category_dir.is_dir():
                 continue
@@ -427,30 +434,36 @@ class SkillStore:
 
                 manifest = skill.manifest
                 score = 0.0
+                name_l = manifest.name.lower()
+                desc_l = manifest.description.lower()
 
-                # exact name match
-                if q in manifest.name.lower():
+                # name and description: whole-word match of full query
+                if has_word(name_l, q):
                     score += 8
-
-                # description match
-                if q in manifest.description.lower():
+                if has_word(desc_l, q):
                     score += 5
 
-                # trigger keyword matches
+                # trigger keyword matching
                 for kw in manifest.trigger_keywords:
                     kw_l = kw.lower()
-                    if q == kw_l:          # exact match
+                    # exact query == keyword
+                    if q == kw_l:
                         score += 10
-                    elif kw_l in q:        # trigger contained in query
+                    # keyword as whole word in query  e.g. kw="debug", q="debug python code"
+                    elif has_word(q, kw_l):
                         score += 3
-                    elif any(qw in kw_l for qw in q.split()):
-                        score += 2          # partial overlap
+                    # query word as substring in keyword  e.g. qw="debug", kw="openclaw-debug"
+                    elif any(qw in kw_l for qw in q_words):
+                        score += 2
 
-                # only consider if score > 0 or exact name match
-                if score > 0 or q == manifest.name.lower():
+                # query words as substring in description
+                for qw in q_words:
+                    if qw in desc_l and len(qw) >= 3:
+                        score += 1
+
+                if score > 0 or q == name_l:
                     results.append((skill, score))
 
-        # sort descending
         results.sort(key=lambda x: x[1], reverse=True)
         return results
 

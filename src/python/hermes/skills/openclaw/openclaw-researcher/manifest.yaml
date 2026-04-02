@@ -1,0 +1,15 @@
+name: openclaw-researcher
+description: 信息搜索和整理
+trigger_keywords:
+  - 搜索
+  - 调研
+  - 查找
+  - 查一下
+  - 研究
+platform: universal
+enabled: true
+version: 1
+uses: 0
+last_used: 
+rating: 5.0
+tags:

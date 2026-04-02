@@ -92,9 +92,8 @@ def cmd_skills_find(query: str) -> dict:
                 "name": s.manifest.name,
                 "description": s.manifest.description,
                 "trigger": s.trigger_text[:100] if s.trigger_text else "",
-                "confidence": round(score, 2),
             }
-            for s, score in matches
+            for s in matches
         ],
         "count": len(matches),
     }

@@ -1,0 +1,15 @@
+name: openclaw-bash-expert
+description: Shell 命令和脚本
+trigger_keywords:
+  - bash
+  - shell
+  - 脚本
+  - terminal
+  - 执行命令
+platform: universal
+enabled: true
+version: 1
+uses: 0
+last_used: 
+rating: 5.0
+tags:

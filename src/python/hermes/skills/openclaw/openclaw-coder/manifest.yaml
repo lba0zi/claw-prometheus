@@ -1,0 +1,15 @@
+name: openclaw-coder
+description: 代码编写、重构、Debug
+trigger_keywords:
+  - 写代码
+  - 实现
+  - debug
+  - fix bug
+  - 重构
+platform: universal
+enabled: true
+version: 1
+uses: 0
+last_used: 
+rating: 5.0
+tags:

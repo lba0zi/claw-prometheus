@@ -10,6 +10,8 @@ hermes_integration.py — OpenClaw + Hermes Extensions 集成层
     h.on_turn_complete(messages, model="MiniMax-M2.7")
 """
 
+from __future__ import annotations
+
 from . import context_threat
 from . import context_reference
 from . import smart_routing
@@ -17,10 +19,12 @@ from . import trajectory
 from . import context_compressor
 
 try:
-    from . import skill
+    from .skills import skill
+    from .skills.skill import Skill
     HAS_SKILLS = True
 except ImportError:
     HAS_SKILLS = False
+    Skill = None  # type: ignore
 
 
 class HermesIntegration:

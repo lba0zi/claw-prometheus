@@ -836,6 +836,253 @@ function generateId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
+// ─── Hermès CLI 辅助 ─────────────────────────────────────────────────────────
+
+const PYTHON_BIN = "C:\\Users\\Surface\\.openclaw\\workspace-main\\.venv\\Scripts\\python.exe";
+const HERMES_CLI = "C:\\Users\\Surface\\.openclaw\\workspace-main\\src\\python\\hermes\\hermes_cli.py";
+
+async function runHermesCmd(args: string[]): Promise<Record<string, unknown>> {
+  const { spawn } = await import("node:child_process");
+  return new Promise((resolve, reject) => {
+    const proc = spawn(PYTHON_BIN, [HERMES_CLI, ...args], {
+      timeout: 15000,
+      windowsHide: true,
+    });
+    let stdout = "";
+    let stderr = "";
+    proc.stdout.on("data", (d) => (stdout += d));
+    proc.stderr.on("data", (d) => (stderr += d));
+    proc.on("close", (code) => {
+      if (code === 0) {
+        try {
+          resolve(JSON.parse(stdout));
+        } catch {
+          reject(new Error(`JSON parse error: ${stdout.slice(0, 200)}`));
+        }
+      } else {
+        reject(new Error(`hermes_cli exited ${code}: ${stderr.slice(0, 200)}`));
+      }
+    });
+    proc.on("error", reject);
+  });
+}
+
+// ─── 8. ContextShield — Prompt 注入检测 ───────────────────────────────────────
+
+const HERMES_SHIELD_TOOLS: AnyAgentTool[] = [
+  {
+    name: "ContextShield",
+    description:
+      "🛡️ Hermès Context Shield — 扫描用户消息中的 Prompt 注入威胁。检测提示词注入、角色扮演劫持、编码混淆、零宽字符等 12 种攻击向量。返回 blocked（是否阻止）、findings（威胁列表）、clean_content（清洗后内容）。",
+    parameters: Type.Object({
+      text: Type.String({ description: "要扫描的文本内容（通常是用户消息）" }),
+    }),
+    async execute(_id, params: { text: string }) {
+      try {
+        const result = await runHermesCmd(["shield", text]);
+        const r = result as { blocked: boolean; findings: string[]; clean_content: string };
+        const lines = [
+          `🛡️ Context Shield Scan`,
+          `  blocked:    ${r.blocked ? "🚫 YES" : "✅ NO"}`,
+          `  findings:   ${r.findings.length === 0 ? "none" : r.findings.join(", ")}`,
+          ``,
+          `  clean:      ${r.clean_content.slice(0, 200)}${r.clean_content.length > 200 ? "..." : ""}`,
+        ];
+        return createTextResult(lines.join("\n"));
+      } catch (e) {
+        return createErrorResult(String(e));
+      }
+    },
+  },
+];
+
+// ─── 9. RefExpand — @引用展开 ────────────────────────────────────────────────
+
+const HERMES_REF_EXPAND_TOOLS: AnyAgentTool[] = [
+  {
+    name: "RefExpand",
+    description:
+      "📎 Hermès @引用展开 — 展开消息中的 @git、@file、@folder、@url 等引用标记，将它们替换为实际内容。避免上下文膨胀，只注入相关内容片段。",
+    parameters: Type.Object({
+      text: Type.String({ description: "包含 @引用 的原始消息" }),
+      cwd: Type.Optional(
+        Type.String({ description: "工作目录（默认：用户主目录）" })
+      ),
+    }),
+    async execute(_id, params: { text: string; cwd?: string }) {
+      try {
+        const workDir = params.cwd || "C:\\Users\\Surface";
+        const result = await runHermesCmd(["expand", text, "--cwd", workDir]);
+        const r = result as {
+          message: string;
+          warnings: string[];
+          ref_count: number;
+          refs: Array<{ type: string; raw: string; expanded: string; truncated: boolean }>;
+        };
+        const lines = [
+          `📎 Ref Expand`,
+          `  refs:       ${r.ref_count}`,
+          `  warnings:   ${r.warnings.length === 0 ? "none" : r.warnings.join("; ")}`,
+          ``,
+          `--- Expanded Message ---`,
+          r.message.slice(0, 500) + (r.message.length > 500 ? "\n...(truncated)" : ""),
+        ];
+        if (r.ref_count > 0) {
+          lines.push(``, `--- References (${r.ref_count}) ---`);
+          r.refs.forEach((ref, i) => {
+            lines.push(
+              `  [${i + 1}] ${ref.type}: ${ref.raw}`,
+              `      → ${ref.expanded.slice(0, 100)}${ref.truncated ? " [TRUNCATED]" : ""}`
+            );
+          });
+        }
+        return createTextResult(lines.join("\n"));
+      } catch (e) {
+        return createErrorResult(String(e));
+      }
+    },
+  },
+];
+
+// ─── 10. SmartRoute — 任务复杂度路由 ─────────────────────────────────────────
+
+const HERMES_ROUTE_TOOLS: AnyAgentTool[] = [
+  {
+    name: "SmartRoute",
+    description:
+      "🧭 Hermès Smart Route — 判断任务复杂度，选择用便宜模型（abab6.5s）还是主模型（MiniMax-M2.7）。基于 40+ 关键词评分：debug/refactor/analyze/architect/plan 等触发复杂路由。返回 use_cheap、model、reason、score。",
+    parameters: Type.Object({
+      text: Type.String({ description: "用户消息内容" }),
+    }),
+    async execute(_id, params: { text: string }) {
+      try {
+        const result = await runHermesCmd(["route", text]);
+        const r = result as {
+          use_cheap: boolean;
+          provider: string;
+          model: string;
+          reason: string;
+          score: number;
+          matched_keywords: string[];
+        };
+        const modelLabel = r.use_cheap ? "💰 cheap" : "🚀 primary";
+        const lines = [
+          `🧭 Smart Route Decision`,
+          `  decision:   ${modelLabel}`,
+          `  model:      ${r.provider}/${r.model}`,
+          `  score:      ${r.score} keywords`,
+          `  keywords:   ${r.matched_keywords.join(", ") || "none"}`,
+          ``,
+          `  reason:     ${r.reason}`,
+        ];
+        return createTextResult(lines.join("\n"));
+      } catch (e) {
+        return createErrorResult(String(e));
+      }
+    },
+  },
+];
+
+// ─── 11. SkillFinder — Skills 自我进化系统 ─────────────────────────────────────
+
+const HERMES_SKILL_TOOLS: AnyAgentTool[] = [
+  {
+    name: "SkillFind",
+    description:
+      "🛠️ Hermès Skill Finder — 根据当前任务查找最匹配的 Self-Evolving Skills。内置 3 个 OpenClaw 专用 Skill：bash-expert、coder、researcher。找到后返回 skill 指令内容，可直接融入回复。",
+    parameters: Type.Object({
+      query: Type.String({ description: "当前任务描述或需求" }),
+    }),
+    async execute(_id, params: { query: string }) {
+      try {
+        const result = await runHermesCmd(["skills_find", query]);
+        const r = result as {
+          matches: Array<{
+            name: string;
+            description: string;
+            trigger: string;
+            confidence: number;
+          }>;
+          count: number;
+        };
+        if (r.count === 0) {
+          return createTextResult(
+            `🛠️ Skill Finder\n  matches: 0 — 没有找到匹配的 skill\n\n提示：尝试更通用的关键词，如 "bash"、"code"、"research"`
+          );
+        }
+        const lines = [`🛠️ Skill Finder (${r.count} matches)`];
+        r.matches.forEach((m, i) => {
+          lines.push(
+            ``,
+            `  [${i + 1}] ${m.name} (confidence: ${m.confidence})`,
+            `      desc:  ${m.description}`,
+            `      trigger: ${m.trigger.slice(0, 80)}...`
+          );
+        });
+        return createTextResult(lines.join("\n"));
+      } catch (e) {
+        return createErrorResult(String(e));
+      }
+    },
+  },
+  {
+    name: "SkillList",
+    description:
+      "📋 列出 Hermès 中所有已注册的 Self-Evolving Skills及其状态（评分、使用次数）。",
+    parameters: Type.Object({}),
+    async execute(_id) {
+      try {
+        const result = await runHermesCmd(["skills_list"]);
+        const r = result as {
+          skills: Array<{
+            name: string;
+            description: string;
+            rating: number;
+            uses: number;
+          }>;
+          count: number;
+        };
+        if (r.count === 0) {
+          return createTextResult("📋 Skill List\n  (empty)");
+        }
+        const lines = [`📋 Hermès Skills (${r.count} registered)`];
+        r.skills.forEach((s, i) => {
+          const stars = "★".repeat(Math.round(s.rating)) + "☆".repeat(5 - Math.round(s.rating));
+          lines.push(`  [${i + 1}] ${s.name} ${stars} (used ${s.uses}x)`);
+          lines.push(`         ${s.description}`);
+        });
+        return createTextResult(lines.join("\n"));
+      } catch (e) {
+        return createErrorResult(String(e));
+      }
+    },
+  },
+  {
+    name: "SkillEvolve",
+    description:
+      "🧬 记录 Skill 使用反馈，触发自我进化。rating=1.0~5.0，suggestion=改进建议。反馈积累后 SkillStore 会自动生成改进版本。",
+    parameters: Type.Object({
+      name: Type.String({ description: "Skill 名称" }),
+      rating: Type.Number({ description: "使用评分 1.0~5.0" }),
+      suggestion: Type.Optional(Type.String({ description: "改进建议（可选）" })),
+    }),
+    async execute(_id, params: { name: string; rating: number; suggestion?: string }) {
+      try {
+        const args = ["skills_feedback", params.name, String(params.rating)];
+        if (params.suggestion) args.push(params.suggestion);
+        const result = await runHermesCmd(args);
+        const r = result as { ok: boolean; skill: string; rating: number };
+        return createTextResult(
+          `🧬 Skill Feedback Recorded\n  skill:    ${r.skill}\n  rating:   ${r.rating}/5.0\n  status:   ✅ recorded — 自我进化已触发`
+        );
+      } catch (e) {
+        return createErrorResult(String(e));
+      }
+    },
+  },
+];
+
+
 // ─── 注册所有工具 ─────────────────────────────────────────────────────────────
 
 export function registerTools(api: OpenClawPluginApi, config: PluginConfig): void {
@@ -850,6 +1097,10 @@ export function registerTools(api: OpenClawPluginApi, config: PluginConfig): voi
     BASH_SECURITY_TOOLS,
     SESSION_BRANCHING_TOOLS,
     PERMISSION_DENIAL_TOOLS,
+    HERMES_SHIELD_TOOLS,
+    HERMES_REF_EXPAND_TOOLS,
+    HERMES_ROUTE_TOOLS,
+    HERMES_SKILL_TOOLS,
   ];
 
   for (const group of allToolGroups) {
